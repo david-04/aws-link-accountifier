@@ -1,0 +1,10 @@
+{
+  "devDependencies": {
+    "typescript": "*"
+
+  },
+  "name": "aws-link-accountifier",
+  "scripts": {
+    "build": "tsc"
+  }
+}

@@ -1,0 +1,1 @@
+AwsLinkAccountifier.main();
