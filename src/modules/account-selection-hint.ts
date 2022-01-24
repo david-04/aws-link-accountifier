@@ -8,21 +8,20 @@ namespace AwsLinkAccountifier {
         const accountId = redirectState.requiredAccount.id;
         const accountName = getDescriptiveAccountName(redirectState);
         const banner = document.createElement("DIV");
-        banner.innerHTML = `
-            <div id="accountified-aws-links-banner" style="width:100vw;background-color:yellow;border-bottom:1px solid black;padding:0.75em;font-size:1.4em;margin-bottom:1rem;">
-                Please sign in to account <b>${sanitise(accountName)}</b>
-                ... or
-                <button style="font-size:1.1em;">Cancel this redirect</button>
-            </div>
-        `;
-        const button = document.querySelector("#accountified-aws-links-banner button") as HTMLButtonElement | null;
-        if (button) {
-            button.addEventListener("click", () => {
-                deleteRedirectState();
-                highlightAccount(accountId, null);
-                banner.style.visibility = "hidden";
-            });
-        }
+        banner.innerHTML = `Please sign in to account <b>${sanitise(accountName)}</b>`;
+
+        const style = banner.style;
+        style.backgroundColor = "yellow";
+        style.fontSize = "1.4em";
+        style.borderBottom = "1px solid black";
+        style.padding = "0.75em";
+        style.marginBottom = "1rem";
+
+        style.width = "calc(100vw + 50px)";
+        style.maxWidth = "calc(100vw + 50px)";
+        style.marginLeft = "-50px";
+        style.paddingLeft = "calc(50px + 0.75em)";
+
         document.body.insertBefore(banner, document.body.firstChild);
         highlightAccount(accountId, "yellow");
     }

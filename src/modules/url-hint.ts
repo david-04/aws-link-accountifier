@@ -1,6 +1,6 @@
 namespace AwsLinkAccountifier {
 
-    export const URL_HINT_PREFIX = "#acountified-aws-link=";
+    export const URL_HINT_PREFIX = "#aws-link-accountifier=";
 
     //------------------------------------------------------------------------------------------------------------------
     // Data structure of the stringified URL hint
