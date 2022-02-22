@@ -10,7 +10,7 @@ namespace AwsLinkAccountifier {
         account: {
             id: string;
             alias?: string;
-            exampleRole?: string
+            exampleRole?: string;
         }
     }
 
@@ -50,10 +50,10 @@ namespace AwsLinkAccountifier {
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    // Store the hint in a cookie to trigger redirects later on
+    // Store the hint to trigger redirects later on
     //------------------------------------------------------------------------------------------------------------------
 
-    function storeHint(targetUrl: string, hint: UrlHint) {
+    export function storeHint(targetUrl: string, hint: UrlHint) {
         try {
             setRedirectState({
                 targetUrl,
@@ -87,10 +87,35 @@ namespace AwsLinkAccountifier {
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    // Append the given hint to the given URL
+    // Generate a direct link with an embedded hint
     //------------------------------------------------------------------------------------------------------------------
 
-    export function getUrlWithAppendedHint(url: string, hint: UrlHint) {
+    export function createDirectLink(url: string, hint: UrlHint) {
         return splitUrlAndHint(url).url + URL_HINT_PREFIX + encodeURIComponent(JSON.stringify(hint));
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Generate a redirecting link
+    //------------------------------------------------------------------------------------------------------------------
+
+    export function createRedirectLink(url: string, hint: UrlHint) {
+        return `${getSettings().redirectService}#${encodeURIComponent(JSON.stringify({ ...hint, url }))}`;
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Trigger an account switch based on the current redirect state
+    //------------------------------------------------------------------------------------------------------------------
+
+    export function initiateAccountSwitch() {
+        const account = getRedirectState()?.requiredAccount;
+        if (account) {
+            const url = getSettings().accountSwitchUrl
+                .replace(/\$\{ACCOUNT_ID\}/g, encodeURIComponent(account.id))
+                .replace(/\$\{ACCOUNT_ALIAS\}/g, encodeURIComponent(account.alias ?? account.id))
+                .replace(/\$\{ROLE_NAME\}/g, encodeURIComponent(account.exampleRole ?? ""));
+            if (url !== window.location.href) {
+                window.location.href = url;
+            }
+        }
     }
 }

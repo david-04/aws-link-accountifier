@@ -1,14 +1,6 @@
 namespace AwsLinkAccountifier {
 
     //------------------------------------------------------------------------------------------------------------------
-    // Check if the current URL is for the AWS console
-    //------------------------------------------------------------------------------------------------------------------
-
-    export function isAwsUrl() {
-        return !!window.location.host.toLowerCase().endsWith(".aws.amazon.com");
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
     // Get a string property from an object
     //------------------------------------------------------------------------------------------------------------------
 
@@ -53,4 +45,17 @@ namespace AwsLinkAccountifier {
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
     }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Execute the given callback when the page has been loaded
+    //------------------------------------------------------------------------------------------------------------------
+
+    export function onDOMContentLoaded(callback: () => void) {
+        if (document.readyState === "complete" || document.readyState === "interactive") {
+            callback();
+        } else {
+            document.addEventListener("DOMContentLoaded", callback);
+        }
+    }
+
 }

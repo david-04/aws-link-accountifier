@@ -7,15 +7,21 @@ namespace AwsLinkAccountifier {
     //------------------------------------------------------------------------------------------------------------------
 
     export function main() {
-        if (isAwsUrl()) {
+        const isAwsConsole = window.location.host.toLowerCase().endsWith(".aws.amazon.com");
+        const isRedirectPage = 0 <= window.location.pathname.indexOf("aws-accountified-redirect.htm");
+        if (isAwsConsole) {
             extractUrlHint();
-            initialiseMenu();
-            if (document.readyState === "complete" || document.readyState === "interactive") {
-                processNotificationsAndRedirects();
-            } else {
-                document.addEventListener("DOMContentLoaded", processNotificationsAndRedirects);
-            }
+            onDOMContentLoaded(processNotificationsAndRedirects);
         }
+        if (isRedirectPage) {
+            processRedirectUrl();
+        }
+        initialiseMenu({
+            copyLink: isAwsConsole,
+            switchRole: isAwsConsole,
+            setAccountSwitchUrl: isAwsConsole || isRedirectPage,
+            useThisPageForRedirects: isRedirectPage
+        });
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -56,14 +62,33 @@ namespace AwsLinkAccountifier {
             }
         } else if (redirectState.shouldAutoLogout) {
             setRedirectState({ ...redirectState, shouldAutoLogout: false });
-            const account = redirectState.requiredAccount;
-            const url = getSettings().accountSwitchUrl
-                .replace(/\$\{ACCOUNT_ID\}/g, encodeURIComponent(account.id))
-                .replace(/\$\{ACCOUNT_ALIAS\}/g, encodeURIComponent(account.alias ?? account.id))
-                .replace(/\$\{ROLE_NAME\}/g, encodeURIComponent(account.exampleRole ?? ""));
-            if (url !== window.location.href) {
-                window.location.href = url;
+            initiateAccountSwitch();
+        }
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Intercept redirect service page loads
+    //------------------------------------------------------------------------------------------------------------------
+
+    function processRedirectUrl() {
+        try {
+            const hash = decodeURIComponent((window.location.hash ?? "").replace(/^#/, "").trim());
+            if (hash) {
+                const parameters = JSON.parse(hash) as UrlHint & { url: string };
+                if (parameters
+                    && "object" === typeof parameters
+                    && "string" === typeof parameters.url
+                    && parameters.url.match(/^http/)
+                    && parameters.account
+                    && "object" === typeof parameters.account) {
+                    storeHint(parameters.url, { account: parameters.account });
+                    window.location.href = parameters.url;
+                } else {
+                    console.error("The hash does not contain a valid 'url'");
+                }
             }
+        } catch (exception) {
+            console.error(exception);
         }
     }
 }

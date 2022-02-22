@@ -7,7 +7,8 @@ namespace AwsLinkAccountifier {
     //------------------------------------------------------------------------------------------------------------------
 
     interface Settings {
-        readonly accountSwitchUrl: string
+        readonly accountSwitchUrl: string;
+        readonly redirectService: string;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -15,7 +16,8 @@ namespace AwsLinkAccountifier {
     //------------------------------------------------------------------------------------------------------------------
 
     const DEFAULT_SETTINGS: Settings = {
-        accountSwitchUrl: "https://signin.aws.amazon.com/switchrole?account=${ACCOUNT_ID}&roleName=${ROLE_NAME}"
+        accountSwitchUrl: "https://signin.aws.amazon.com/switchrole?account=${ACCOUNT_ID}&roleName=${ROLE_NAME}",
+        redirectService: "https://david-04.github.io/aws-link-accountifier/aws-accountified-redirect.html"
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -23,7 +25,7 @@ namespace AwsLinkAccountifier {
     //------------------------------------------------------------------------------------------------------------------
 
     export function getSettings() {
-        return GM_getValue("settings", DEFAULT_SETTINGS) as Settings;
+        return { ...DEFAULT_SETTINGS, ...GM_getValue("settings", DEFAULT_SETTINGS) as Settings };
     }
 
     //------------------------------------------------------------------------------------------------------------------

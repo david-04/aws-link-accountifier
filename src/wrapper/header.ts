@@ -8,6 +8,7 @@
 // @updateURL    https://raw.githubusercontent.com/david-04/aws-link-accountifier/main/dist/tampermonkey/aws-link-accountifier.js
 // @downloadURL  https://raw.githubusercontent.com/david-04/aws-link-accountifier/main/dist/tampermonkey/aws-link-accountifier.js
 // @match        *://*.aws.amazon.com/*
+// @match        *://*/*aws-accountified-redirect.htm*
 // @run-at       document-start
 // @grant        GM_getValue
 // @grant        GM_setValue
