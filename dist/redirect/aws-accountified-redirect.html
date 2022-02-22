@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Accountified Redirect</title>
+</head>
+<body data-aws-accountified-redirect-version="1" style="line-height:1.5em">
+    <div style="width:80%;max-width:35em;margin:auto;padding-top:6em;">
+        <div id="warning" style="display:none;border:1px solid red;padding:0.2em;background-color:yellow;color:red;margin-bottom:2em;font-weight:bold">
+            ERROR
+        </div>
+        <div id="instructions" style="display:none">
+            <h1 style="font-size:1.25em;">AWS Accountified Redirect</h1>
+            <p>
+                This page can be used as a redirect service for the
+                <a href="https://github.com/david-04/aws-link-accountifier">aws-link-accountifier</a>.
+            </p>
+            <p>
+                It is recommended that you host this page on a domain (or S3 bucket) that you control.
+                Simply download
+                <a href="https://raw.githubusercontent.com/david-04/aws-link-accountifier/main/dist/redirect/aws-accountified-redirect.html">aws-accountified-redirect.html</a>
+                and upload it to your host.
+                Do not rename this file.
+                Otherwise, the aws-link-accountifier won't be activated when visiting this page.
+            </p>
+            <p>
+                To use the current URL as the redirect service,
+                right-click on the page, select "Tampermonkey" (or open Tampermonkey from the extension toolbar)
+                and select "Use this page for redirects".
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    const warning = document.getElementById("warning");
+    const instructions = document.getElementById("instructions");
+    const hash = (window.location.hash || "").replace(/^#?/, "").trim();
+    if (hash) {
+        try {
+            console.log(decodeURIComponent(hash));
+            const url = JSON.parse(decodeURIComponent(hash)).url;
+            if ("string" !== typeof url || !url.match(/^http/)) {
+                throw "Invalid hash - property 'url' is missing or not a valid URL";
+            }
+            window.addEventListener("DOMContentLoaded", () => setTimeout(() => window.location.href = url, 1000));
+        } catch (exception) {
+            console.error(exception);
+            warning.innerText = "Error: Invalid URL"
+            warning.style.display="block";
+            instructions.style.display="block";
+        }
+    } else {
+        instructions.style.display="block";
+    }
+</script>
