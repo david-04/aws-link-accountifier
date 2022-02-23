@@ -156,11 +156,11 @@ var AwsLinkAccountifier;
     // Extract the URL hint and start or schedule the redirect processing
     //------------------------------------------------------------------------------------------------------------------
     function main() {
-        const isAwsConsole = window.location.host.toLowerCase().endsWith(".aws.amazon.com");
+        const isAwsConsole = window.location.host.toLowerCase().endsWith("aws.amazon.com");
         const isRedirectPage = 0 <= window.location.pathname.indexOf("aws-accountified-redirect.htm");
         if (isAwsConsole) {
             AwsLinkAccountifier.extractUrlHint();
-            AwsLinkAccountifier.onDOMContentLoaded(processNotificationsAndRedirects);
+            AwsLinkAccountifier.onDOMContentLoaded(() => processNotificationsAndRedirects(isAwsConsole));
         }
         if (isRedirectPage) {
             processRedirectUrl();
@@ -176,14 +176,14 @@ var AwsLinkAccountifier;
     //------------------------------------------------------------------------------------------------------------------
     // Redirect or inject messages to log out and in again
     //------------------------------------------------------------------------------------------------------------------
-    function processNotificationsAndRedirects() {
-        document.removeEventListener("DOMContentLoaded", processNotificationsAndRedirects);
+    function processNotificationsAndRedirects(isAwsConsole) {
+        document.removeEventListener("DOMContentLoaded", () => processNotificationsAndRedirects(isAwsConsole));
         const redirectState = AwsLinkAccountifier.getRedirectState();
         if (redirectState) {
             if ("signin.aws.amazon.com" === window.location.host) {
                 AwsLinkAccountifier.injectAccountSelectionHint(redirectState);
             }
-            else if (window.location.host.endsWith(".console.aws.amazon.com")) {
+            else if (isAwsConsole) {
                 const awsSession = AwsLinkAccountifier.getCurrentAwsSession();
                 if (awsSession || 10 * 10 < ++getAwsSessionCount) {
                     redirectOrDecorateConsolePage(redirectState, awsSession);
