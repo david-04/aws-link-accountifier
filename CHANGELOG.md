@@ -4,7 +4,8 @@
 
 ### Features
 
-- Added redirect service
+- Added redirect service (for better interoperability when not using the aws-link-accountifier)
+- Added switch-role feature (re-login to the same account but with a different role)
 
 ## [0.1](https://github.com/david-04/aws-link-accountifier/tree/v0.1) (2022-01-26)
 
