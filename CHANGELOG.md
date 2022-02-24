@@ -1,17 +1,19 @@
 # Change Log
 
-## [0.2](https://github.com/david-04/aws-link-accountifier/tree/v0.1) (2022-02-23)
+## [0.3](https://github.com/david-04/aws-link-accountifier/tree/v0.3) (2022-02-25)
 
-### Features
+- Added [documentation](https://github.com/david-04/aws-link-accountifier/blob/main/README.md)
+- Improved the login page flow for currently unauthenticated SSO users
+- Made it easier to customis forks by moving config presets to a [separate file](https://github.com/david-04/aws-link-accountifier/blob/main/src/modules/presets.ts)
+- Fixed an issue with the role-switch that could initiate a second account-switch
 
-- Added redirect service (for better interoperability when not using the aws-link-accountifier)
-- Added switch-role feature (re-login to the same account but with a different role)
+## [0.2](https://github.com/david-04/aws-link-accountifier/tree/v0.2) (2022-02-23)
+
+- Improved link operability by adding a redirect service
+- Added the option to re-open the current page with a different role
 
 ## [0.1](https://github.com/david-04/aws-link-accountifier/tree/v0.1) (2022-01-26)
 
-### Features
-
-- Create accountified links
-- Configure the URL to switch accounts/roles
-- Orchestrated account switch flow when opening links
-- Display account hints on the sign-in page
+- Added the ability to create "accountified" links
+- Added orchestrated redirect flows when opening accountified links
+- Added account hints to AWS sign-in and role-selection pages

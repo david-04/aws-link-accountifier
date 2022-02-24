@@ -38,16 +38,7 @@ namespace AwsLinkAccountifier {
         //--------------------------------------------------------------------------------------------------------------
 
         public matchesAccount(redirectState: RedirectState) {
-            const requiredAccount = redirectState.requiredAccount;
-            if (requiredAccount.id !== this.accountId) {
-                return false;
-            } else if (requiredAccount.excludeExampleRole
-                && requiredAccount.exampleRole
-                && this.role === requiredAccount.exampleRole) {
-                return false;
-            } else {
-                return true;
-            }
+            return redirectState.requiredAccount.id === this.accountId;
         }
     }
 

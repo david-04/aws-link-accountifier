@@ -8,7 +8,7 @@ namespace AwsLinkAccountifier {
 
     interface Settings {
         readonly accountSwitchUrl: string;
-        readonly redirectService: string;
+        readonly redirectUrl: string;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -16,8 +16,8 @@ namespace AwsLinkAccountifier {
     //------------------------------------------------------------------------------------------------------------------
 
     const DEFAULT_SETTINGS: Settings = {
-        accountSwitchUrl: "https://signin.aws.amazon.com/switchrole?account=${ACCOUNT_ID}&roleName=${ROLE_NAME}",
-        redirectService: "https://david-04.github.io/aws-link-accountifier/aws-accountified-redirect.html"
+        accountSwitchUrl: getPresetAccountSwitchUrl(),
+        redirectUrl: getPresetRedirectUrl()
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ namespace AwsLinkAccountifier {
     //------------------------------------------------------------------------------------------------------------------
 
     export function getSettings() {
-        return { ...DEFAULT_SETTINGS, ...GM_getValue("settings", DEFAULT_SETTINGS) as Settings };
+        return migrateSettings({ ...DEFAULT_SETTINGS, ...GM_getValue("settings", DEFAULT_SETTINGS) as Settings });
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -34,5 +34,22 @@ namespace AwsLinkAccountifier {
 
     export function updateSettings(settings: Partial<Settings>) {
         GM_setValue(SETTINGS_KEY, { ...getSettings(), ...settings });
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+    // Migrate old settings
+    //------------------------------------------------------------------------------------------------------------------
+
+    function migrateSettings(settings: Settings) {
+        const data: any = settings;
+        if (data && "object" === typeof data) {
+            if (data.redirectService) {
+                if (!data.redirectUrl) {
+                    data.redirectUrl = data.redirectService;
+                }
+                delete data.redirectService;
+            }
+        }
+        return settings;
     }
 }

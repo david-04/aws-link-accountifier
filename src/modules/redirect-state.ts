@@ -12,7 +12,6 @@ namespace AwsLinkAccountifier {
             id: string;
             alias?: string;
             exampleRole?: string;
-            excludeExampleRole?: boolean;
         }
         shouldAutoLogout: boolean;
         expiresAt: number

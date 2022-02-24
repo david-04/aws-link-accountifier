@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AWS Link Accountifier
 // @namespace    https://github.com/david-04/aws-link-accountifier
-// @version      0.2
+// @version      0.3
 // @author       David Hofmann
 // @description  Bind AWS console links to an account and - when opening such links - trigger an account change if required
 // @homepage     https://github.com/david-04/aws-link-accountifier

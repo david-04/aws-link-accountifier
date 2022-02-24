@@ -2,23 +2,36 @@ namespace AwsLinkAccountifier {
 
     let getAwsSessionCount = 0;
 
+    const isAwsConsole = window.location.host.toLowerCase().endsWith("aws.amazon.com");
+    const isAwsSignin = window.location.host.toLowerCase().endsWith("signin.aws.amazon.com");
+    const isRedirectPage = 0 <= window.location.pathname.indexOf("aws-accountified-redirect.htm");
+
     //------------------------------------------------------------------------------------------------------------------
     // Extract the URL hint and start or schedule the redirect processing
     //------------------------------------------------------------------------------------------------------------------
 
     export function main() {
-        const isAwsConsole = window.location.host.toLowerCase().endsWith("aws.amazon.com");
-        const isRedirectPage = 0 <= window.location.pathname.indexOf("aws-accountified-redirect.htm");
+        if (isRedirectPage) {
+            processRedirectPage();
+        }
+        if (isAwsSignin) {
+            const state = getRedirectState();
+            if (state && state.shouldAutoLogout) {
+                setRedirectState({ ...state, shouldAutoLogout: false });
+                if (getSettings().accountSwitchUrl.toLowerCase().indexOf("signin.aws.amazon.com") < 0) {
+                    // login is done via external SSO - redirect away from AWS' default login page
+                    initiateAccountSwitch();
+                    return;
+                }
+            }
+        }
         if (isAwsConsole) {
             extractUrlHint();
-            onDOMContentLoaded(() => processNotificationsAndRedirects(isAwsConsole));
-        }
-        if (isRedirectPage) {
-            processRedirectUrl();
+            onDOMContentLoaded(processNotificationsAndRedirects);
         }
         initialiseMenu({
-            copyLink: isAwsConsole,
-            switchRole: isAwsConsole,
+            copyLink: isAwsConsole && !isAwsSignin,
+            switchRole: isAwsConsole && !isAwsSignin,
             setAccountSwitchUrl: isAwsConsole || isRedirectPage,
             useThisPageForRedirects: isRedirectPage
         });
@@ -28,11 +41,11 @@ namespace AwsLinkAccountifier {
     // Redirect or inject messages to log out and in again
     //------------------------------------------------------------------------------------------------------------------
 
-    function processNotificationsAndRedirects(isAwsConsole: boolean) {
-        document.removeEventListener("DOMContentLoaded", () => processNotificationsAndRedirects(isAwsConsole));
+    function processNotificationsAndRedirects() {
+        document.removeEventListener("DOMContentLoaded", processNotificationsAndRedirects);
         const redirectState = getRedirectState();
         if (redirectState) {
-            if ("signin.aws.amazon.com" === window.location.host) {
+            if (isAwsSignin) {
                 injectAccountSelectionHint(redirectState);
             } else if (isAwsConsole) {
                 const awsSession = getCurrentAwsSession();
@@ -70,7 +83,7 @@ namespace AwsLinkAccountifier {
     // Intercept redirect service page loads
     //------------------------------------------------------------------------------------------------------------------
 
-    function processRedirectUrl() {
+    function processRedirectPage() {
         try {
             const hash = decodeURIComponent((window.location.hash ?? "").replace(/^#/, "").trim());
             if (hash) {

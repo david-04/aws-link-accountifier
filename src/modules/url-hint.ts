@@ -99,7 +99,7 @@ namespace AwsLinkAccountifier {
     //------------------------------------------------------------------------------------------------------------------
 
     export function createRedirectLink(url: string, hint: UrlHint) {
-        return `${getSettings().redirectService}#${encodeURIComponent(JSON.stringify({ ...hint, url }))}`;
+        return `${getSettings().redirectUrl}#${encodeURIComponent(JSON.stringify({ ...hint, url }))}`;
     }
 
     //------------------------------------------------------------------------------------------------------------------

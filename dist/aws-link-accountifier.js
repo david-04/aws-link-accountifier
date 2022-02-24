@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AWS Link Accountifier
 // @namespace    https://github.com/david-04/aws-link-accountifier
-// @version      0.2
+// @version      0.3
 // @author       David Hofmann
 // @description  Bind AWS console links to an account and - when opening such links - trigger an account change if required
 // @homepage     https://github.com/david-04/aws-link-accountifier
@@ -108,18 +108,7 @@ var AwsLinkAccountifier;
         // Verify if this session's account matches the redirect requirements
         //--------------------------------------------------------------------------------------------------------------
         matchesAccount(redirectState) {
-            const requiredAccount = redirectState.requiredAccount;
-            if (requiredAccount.id !== this.accountId) {
-                return false;
-            }
-            else if (requiredAccount.excludeExampleRole
-                && requiredAccount.exampleRole
-                && this.role === requiredAccount.exampleRole) {
-                return false;
-            }
-            else {
-                return true;
-            }
+            return redirectState.requiredAccount.id === this.accountId;
         }
     }
     AwsLinkAccountifier.AwsSession = AwsSession;
@@ -152,22 +141,34 @@ var AwsLinkAccountifier;
 var AwsLinkAccountifier;
 (function (AwsLinkAccountifier) {
     let getAwsSessionCount = 0;
+    const isAwsConsole = window.location.host.toLowerCase().endsWith("aws.amazon.com");
+    const isAwsSignin = window.location.host.toLowerCase().endsWith("signin.aws.amazon.com");
+    const isRedirectPage = 0 <= window.location.pathname.indexOf("aws-accountified-redirect.htm");
     //------------------------------------------------------------------------------------------------------------------
     // Extract the URL hint and start or schedule the redirect processing
     //------------------------------------------------------------------------------------------------------------------
     function main() {
-        const isAwsConsole = window.location.host.toLowerCase().endsWith("aws.amazon.com");
-        const isRedirectPage = 0 <= window.location.pathname.indexOf("aws-accountified-redirect.htm");
+        if (isRedirectPage) {
+            processRedirectPage();
+        }
+        if (isAwsSignin) {
+            const state = AwsLinkAccountifier.getRedirectState();
+            if (state && state.shouldAutoLogout) {
+                AwsLinkAccountifier.setRedirectState(Object.assign(Object.assign({}, state), { shouldAutoLogout: false }));
+                if (AwsLinkAccountifier.getSettings().accountSwitchUrl.toLowerCase().indexOf("signin.aws.amazon.com") < 0) {
+                    // login is done via external SSO - redirect away from AWS' default login page
+                    AwsLinkAccountifier.initiateAccountSwitch();
+                    return;
+                }
+            }
+        }
         if (isAwsConsole) {
             AwsLinkAccountifier.extractUrlHint();
-            AwsLinkAccountifier.onDOMContentLoaded(() => processNotificationsAndRedirects(isAwsConsole));
-        }
-        if (isRedirectPage) {
-            processRedirectUrl();
+            AwsLinkAccountifier.onDOMContentLoaded(processNotificationsAndRedirects);
         }
         AwsLinkAccountifier.initialiseMenu({
-            copyLink: isAwsConsole,
-            switchRole: isAwsConsole,
+            copyLink: isAwsConsole && !isAwsSignin,
+            switchRole: isAwsConsole && !isAwsSignin,
             setAccountSwitchUrl: isAwsConsole || isRedirectPage,
             useThisPageForRedirects: isRedirectPage
         });
@@ -176,11 +177,11 @@ var AwsLinkAccountifier;
     //------------------------------------------------------------------------------------------------------------------
     // Redirect or inject messages to log out and in again
     //------------------------------------------------------------------------------------------------------------------
-    function processNotificationsAndRedirects(isAwsConsole) {
-        document.removeEventListener("DOMContentLoaded", () => processNotificationsAndRedirects(isAwsConsole));
+    function processNotificationsAndRedirects() {
+        document.removeEventListener("DOMContentLoaded", processNotificationsAndRedirects);
         const redirectState = AwsLinkAccountifier.getRedirectState();
         if (redirectState) {
-            if ("signin.aws.amazon.com" === window.location.host) {
+            if (isAwsSignin) {
                 AwsLinkAccountifier.injectAccountSelectionHint(redirectState);
             }
             else if (isAwsConsole) {
@@ -216,7 +217,7 @@ var AwsLinkAccountifier;
     //------------------------------------------------------------------------------------------------------------------
     // Intercept redirect service page loads
     //------------------------------------------------------------------------------------------------------------------
-    function processRedirectUrl() {
+    function processRedirectPage() {
         var _a;
         try {
             const hash = decodeURIComponent(((_a = window.location.hash) !== null && _a !== void 0 ? _a : "").replace(/^#/, "").trim());
@@ -292,10 +293,9 @@ var AwsLinkAccountifier;
                     requiredAccount: {
                         id: account.accountId,
                         alias: account.accountAlias,
-                        exampleRole: account.role,
-                        excludeExampleRole: true
+                        exampleRole: account.role
                     },
-                    shouldAutoLogout: true,
+                    shouldAutoLogout: false,
                     expiresAt: new Date().getTime() + 10 * 60 * 1000
                 });
                 AwsLinkAccountifier.initiateAccountSwitch();
@@ -326,10 +326,21 @@ var AwsLinkAccountifier;
     function setRedirectUrl() {
         const redirectVersion = document.body.dataset.awsAccountifiedRedirectVersion;
         if (redirectVersion && "string" === typeof redirectVersion) {
-            const callback = () => AwsLinkAccountifier.updateSettings({ redirectService: window.location.href.replace(/#.*/, "") });
+            const callback = () => AwsLinkAccountifier.updateSettings({ redirectUrl: window.location.href.replace(/#.*/, "") });
             GM_registerMenuCommand("Use this page for redirects", callback, "s");
         }
     }
+})(AwsLinkAccountifier || (AwsLinkAccountifier = {}));
+var AwsLinkAccountifier;
+(function (AwsLinkAccountifier) {
+    function getPresetAccountSwitchUrl() {
+        return "https://signin.aws.amazon.com/switchrole?account=${ACCOUNT_ID}&roleName=${ROLE_NAME}";
+    }
+    AwsLinkAccountifier.getPresetAccountSwitchUrl = getPresetAccountSwitchUrl;
+    function getPresetRedirectUrl() {
+        return "https://david-04.github.io/aws-link-accountifier/aws-accountified-redirect.html";
+    }
+    AwsLinkAccountifier.getPresetRedirectUrl = getPresetRedirectUrl;
 })(AwsLinkAccountifier || (AwsLinkAccountifier = {}));
 var AwsLinkAccountifier;
 (function (AwsLinkAccountifier) {
@@ -370,14 +381,14 @@ var AwsLinkAccountifier;
     // Default settings
     //------------------------------------------------------------------------------------------------------------------
     const DEFAULT_SETTINGS = {
-        accountSwitchUrl: "https://signin.aws.amazon.com/switchrole?account=${ACCOUNT_ID}&roleName=${ROLE_NAME}",
-        redirectService: "https://david-04.github.io/aws-link-accountifier/aws-accountified-redirect.html"
+        accountSwitchUrl: AwsLinkAccountifier.getPresetAccountSwitchUrl(),
+        redirectUrl: AwsLinkAccountifier.getPresetRedirectUrl()
     };
     //------------------------------------------------------------------------------------------------------------------
     // Retrieve settings
     //------------------------------------------------------------------------------------------------------------------
     function getSettings() {
-        return Object.assign(Object.assign({}, DEFAULT_SETTINGS), GM_getValue("settings", DEFAULT_SETTINGS));
+        return migrateSettings(Object.assign(Object.assign({}, DEFAULT_SETTINGS), GM_getValue("settings", DEFAULT_SETTINGS)));
     }
     AwsLinkAccountifier.getSettings = getSettings;
     //------------------------------------------------------------------------------------------------------------------
@@ -387,6 +398,21 @@ var AwsLinkAccountifier;
         GM_setValue(SETTINGS_KEY, Object.assign(Object.assign({}, getSettings()), settings));
     }
     AwsLinkAccountifier.updateSettings = updateSettings;
+    //------------------------------------------------------------------------------------------------------------------
+    // Migrate old settings
+    //------------------------------------------------------------------------------------------------------------------
+    function migrateSettings(settings) {
+        const data = settings;
+        if (data && "object" === typeof data) {
+            if (data.redirectService) {
+                if (!data.redirectUrl) {
+                    data.redirectUrl = data.redirectService;
+                }
+                delete data.redirectService;
+            }
+        }
+        return settings;
+    }
 })(AwsLinkAccountifier || (AwsLinkAccountifier = {}));
 var AwsLinkAccountifier;
 (function (AwsLinkAccountifier) {
@@ -473,7 +499,7 @@ var AwsLinkAccountifier;
     // Generate a redirecting link
     //------------------------------------------------------------------------------------------------------------------
     function createRedirectLink(url, hint) {
-        return `${AwsLinkAccountifier.getSettings().redirectService}#${encodeURIComponent(JSON.stringify(Object.assign(Object.assign({}, hint), { url })))}`;
+        return `${AwsLinkAccountifier.getSettings().redirectUrl}#${encodeURIComponent(JSON.stringify(Object.assign(Object.assign({}, hint), { url })))}`;
     }
     AwsLinkAccountifier.createRedirectLink = createRedirectLink;
     //------------------------------------------------------------------------------------------------------------------

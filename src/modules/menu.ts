@@ -53,10 +53,9 @@ namespace AwsLinkAccountifier {
                     requiredAccount: {
                         id: account.accountId,
                         alias: account.accountAlias,
-                        exampleRole: account.role,
-                        excludeExampleRole: true
+                        exampleRole: account.role
                     },
-                    shouldAutoLogout: true,
+                    shouldAutoLogout: false,
                     expiresAt: new Date().getTime() + 10 * 60 * 1000
                 });
                 initiateAccountSwitch();
@@ -92,7 +91,7 @@ namespace AwsLinkAccountifier {
     function setRedirectUrl() {
         const redirectVersion = document.body.dataset.awsAccountifiedRedirectVersion;
         if (redirectVersion && "string" === typeof redirectVersion) {
-            const callback = () => updateSettings({ redirectService: window.location.href.replace(/#.*/, "") });
+            const callback = () => updateSettings({ redirectUrl: window.location.href.replace(/#.*/, "") });
             GM_registerMenuCommand("Use this page for redirects", callback, "s");
         }
     }

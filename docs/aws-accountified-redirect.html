@@ -27,7 +27,7 @@
             <p>
                 To use the current URL as the redirect service,
                 right-click on the page, select "Tampermonkey" (or open Tampermonkey from the extension toolbar)
-                and select "AWS Link Accountififer" &rarr; "Use this page for redirects".
+                and select "AWS Link Accountifier" &rarr; "Use this page for redirects".
             </p>
         </div>
     </div>
@@ -39,7 +39,6 @@
     const hash = (window.location.hash || "").replace(/^#?/, "").trim();
     if (hash) {
         try {
-            console.log(decodeURIComponent(hash));
             const url = JSON.parse(decodeURIComponent(hash)).url;
             if ("string" !== typeof url || !url.match(/^http/)) {
                 throw "Invalid hash - property 'url' is missing or not a valid URL";
