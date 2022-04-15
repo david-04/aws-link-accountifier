@@ -25,7 +25,7 @@ namespace AwsLinkAccountifier {
     //------------------------------------------------------------------------------------------------------------------
 
     export function getSettings() {
-        return migrateSettings({ ...DEFAULT_SETTINGS, ...GM_getValue("settings", DEFAULT_SETTINGS) as Settings });
+        return migrateSettings({ ...DEFAULT_SETTINGS, ...(GM_getValue("settings", DEFAULT_SETTINGS) ?? {}) });
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -40,16 +40,13 @@ namespace AwsLinkAccountifier {
     // Migrate old settings
     //------------------------------------------------------------------------------------------------------------------
 
-    function migrateSettings(settings: Settings) {
-        const data: any = settings;
-        if (data && "object" === typeof data) {
-            if (data.redirectService) {
-                if (!data.redirectUrl) {
-                    data.redirectUrl = data.redirectService;
-                }
-                delete data.redirectService;
-            }
+    function migrateSettings(settings: Settings & { redirectService?: string }) {
+        const redirectUrl = settings.redirectUrl ?? settings.redirectService;
+        delete settings.redirectService;
+        if ("string" === typeof redirectUrl) {
+            return { ...settings, redirectUrl };
+        } else {
+            return settings;
         }
-        return settings;
     }
 }

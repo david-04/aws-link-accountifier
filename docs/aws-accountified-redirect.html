@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,12 +41,12 @@
         try {
             const url = JSON.parse(decodeURIComponent(hash)).url;
             if ("string" !== typeof url || !url.match(/^http/)) {
-                throw "Invalid hash - property 'url' is missing or not a valid URL";
+                throw new Error("Invalid hash - property 'url' is missing or not a valid URL");
             }
             window.addEventListener("DOMContentLoaded", () => setTimeout(() => window.location.href = url, 1500));
         } catch (exception) {
             console.error(exception);
-            warning.innerText = "Error: Invalid URL"
+            warning.innerText = "Error: Invalid URL";
             warning.style.display="block";
             instructions.style.display="block";
         }

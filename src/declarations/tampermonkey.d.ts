@@ -1,7 +1,7 @@
-declare function GM_setValue(name: string, value: any): void;
+declare function GM_setValue(name: string, value: unknown): void;
 declare function GM_getValue<T>(name: string, defaultValue: T): T | undefined | null;
 declare function GM_deleteValue(name: string): void;
-declare function GM_registerMenuCommand(name: string, fn: () => void, accessKey?: any): number;
+declare function GM_registerMenuCommand(name: string, fn: () => void, accessKey?: unknown): number;
 declare function GM_setClipboard(data: string, info?: string): void;
 declare function GM_notification(details: {
     text?: string,

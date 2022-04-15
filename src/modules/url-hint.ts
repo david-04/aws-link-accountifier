@@ -78,11 +78,11 @@ namespace AwsLinkAccountifier {
         try {
             const json = JSON.parse(decodeURIComponent(hint));
             if (!json || "object" !== typeof json || "string" !== typeof json?.account?.id) {
-                throw `Invalid URL hint: ${hint} (account/id is missing)`;
+                throw new Error(`account/id is missing`);
             }
             return json as UrlHint;
         } catch (exception) {
-            throw `Invalid URL hint: ${hint} (${exception})`;
+            throw new Error(`Invalid URL hint: ${hint} - (${exception})`);
         }
     }
 

@@ -4,7 +4,7 @@ namespace AwsLinkAccountifier {
     // Get a string property from an object
     //------------------------------------------------------------------------------------------------------------------
 
-    export function getStringProperty(object: any, key: string) {
+    export function getStringProperty(object: { [key: string]: unknown }, key: string) {
         if (object && "object" === typeof object && "string" === typeof (object[key])) {
             return object[key] as string;
         } else {
@@ -32,15 +32,15 @@ namespace AwsLinkAccountifier {
     //------------------------------------------------------------------------------------------------------------------
 
     export function setCookie(name: string, value: string, domain: string, path: string, ttlMs: number) {
-        var expires = new Date(new Date().getTime() + ttlMs);
+        const expires = new Date(new Date().getTime() + ttlMs);
         document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires};domain=${domain};path=${path}`;
     }
 
     //------------------------------------------------------------------------------------------------------------------
-    // Sanitise HTML content
+    // Sanitize HTML content
     //------------------------------------------------------------------------------------------------------------------
 
-    export function sanitise(text: string) {
+    export function sanitize(text: string) {
         return text.replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
@@ -57,5 +57,4 @@ namespace AwsLinkAccountifier {
             document.addEventListener("DOMContentLoaded", callback);
         }
     }
-
 }

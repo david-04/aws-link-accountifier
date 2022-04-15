@@ -3,7 +3,7 @@ namespace AwsLinkAccountifier {
     let getAwsSessionCount = 0;
 
     const isAwsConsole = window.location.host.toLowerCase().endsWith("aws.amazon.com");
-    const isAwsSignin = window.location.host.toLowerCase().endsWith("signin.aws.amazon.com");
+    const isAwsSignIn = window.location.host.toLowerCase().endsWith("signin.aws.amazon.com");
     const isRedirectPage = 0 <= window.location.pathname.indexOf("aws-accountified-redirect.htm");
 
     //------------------------------------------------------------------------------------------------------------------
@@ -14,7 +14,7 @@ namespace AwsLinkAccountifier {
         if (isRedirectPage) {
             processRedirectPage();
         }
-        if (isAwsSignin) {
+        if (isAwsSignIn) {
             const state = getRedirectState();
             if (state && state.shouldAutoLogout) {
                 setRedirectState({ ...state, shouldAutoLogout: false });
@@ -29,9 +29,9 @@ namespace AwsLinkAccountifier {
             extractUrlHint();
             onDOMContentLoaded(processNotificationsAndRedirects);
         }
-        initialiseMenu({
-            copyLink: isAwsConsole && !isAwsSignin,
-            switchRole: isAwsConsole && !isAwsSignin,
+        initializeMenu({
+            copyLink: isAwsConsole && !isAwsSignIn,
+            switchRole: isAwsConsole && !isAwsSignIn,
             setAccountSwitchUrl: isAwsConsole || isRedirectPage,
             useThisPageForRedirects: isRedirectPage
         });
@@ -45,7 +45,7 @@ namespace AwsLinkAccountifier {
         document.removeEventListener("DOMContentLoaded", processNotificationsAndRedirects);
         const redirectState = getRedirectState();
         if (redirectState) {
-            if (isAwsSignin) {
+            if (isAwsSignIn) {
                 injectAccountSelectionHint(redirectState);
             } else if (isAwsConsole) {
                 const awsSession = getCurrentAwsSession();

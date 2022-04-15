@@ -9,7 +9,7 @@ namespace AwsLinkAccountifier {
     export class AwsSession {
 
         //--------------------------------------------------------------------------------------------------------------
-        // Initialisation
+        // Initialization
         //--------------------------------------------------------------------------------------------------------------
 
         public constructor(
@@ -66,7 +66,9 @@ namespace AwsLinkAccountifier {
     // Extract a piece of information from an object property
     //------------------------------------------------------------------------------------------------------------------
 
-    function extractPropertyFragment(object: any, propertyName: string, matchAndRemove: RegExp, remove: RegExp) {
+    function extractPropertyFragment(
+        object: { [key: string]: unknown }, propertyName: string, matchAndRemove: RegExp, remove: RegExp
+    ) {
         const value = getStringProperty(object, propertyName);
         if (value && value.match(matchAndRemove)) {
             return value.replace(matchAndRemove, "").replace(remove, "");

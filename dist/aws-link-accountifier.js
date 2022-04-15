@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AWS Link Accountifier
 // @namespace    https://github.com/david-04/aws-link-accountifier
-// @version      0.3
+// @version      1.0
 // @author       David Hofmann
 // @description  Bind AWS console links to an account and - when opening such links - trigger an account change if required
 // @homepage     https://github.com/david-04/aws-link-accountifier
@@ -25,7 +25,7 @@ var AwsLinkAccountifier;
         const accountId = redirectState.requiredAccount.id;
         const accountName = getDescriptiveAccountName(redirectState);
         const banner = document.createElement("DIV");
-        banner.innerHTML = `Please sign in to account <b>${AwsLinkAccountifier.sanitise(accountName)}</b>`;
+        banner.innerHTML = `Please sign in to account <b>${AwsLinkAccountifier.sanitize(accountName)}</b>`;
         const style = banner.style;
         style.backgroundColor = "yellow";
         style.fontSize = "1.4em";
@@ -43,20 +43,23 @@ var AwsLinkAccountifier;
     //------------------------------------------------------------------------------------------------------------------
     // Highlight the given account's login options
     //------------------------------------------------------------------------------------------------------------------
-    function highlightAccount(accountId, colour) {
+    function highlightAccount(accountId, color) {
         document.querySelectorAll("* * .saml-account-name").forEach(node => {
+            var _a, _b;
             const element = node;
             const innerText = element.innerText;
             if (innerText.endsWith(` ${accountId}`) || innerText.endsWith(` (${accountId})`)) {
-                const style = element.parentElement.parentElement.style;
-                if (colour) {
-                    style.backgroundColor = colour;
+                const style = (_b = (_a = element.parentElement) === null || _a === void 0 ? void 0 : _a.parentElement) === null || _b === void 0 ? void 0 : _b.style;
+                if (style) {
+                    if (color) {
+                        style.backgroundColor = color;
+                    }
+                    else {
+                        style.removeProperty("background-color");
+                    }
+                    style.paddingTop = "1.5em";
+                    style.paddingBottom = "0.5em";
                 }
-                else {
-                    style.removeProperty("background-color");
-                }
-                style.paddingTop = "1.5em";
-                style.paddingBottom = "0.5em";
             }
         });
     }
@@ -84,7 +87,7 @@ var AwsLinkAccountifier;
     //------------------------------------------------------------------------------------------------------------------
     class AwsSession {
         //--------------------------------------------------------------------------------------------------------------
-        // Initialisation
+        // Initialization
         //--------------------------------------------------------------------------------------------------------------
         constructor(accountId, accountAlias, role) {
             this.accountId = accountId;
@@ -142,7 +145,7 @@ var AwsLinkAccountifier;
 (function (AwsLinkAccountifier) {
     let getAwsSessionCount = 0;
     const isAwsConsole = window.location.host.toLowerCase().endsWith("aws.amazon.com");
-    const isAwsSignin = window.location.host.toLowerCase().endsWith("signin.aws.amazon.com");
+    const isAwsSignIn = window.location.host.toLowerCase().endsWith("signin.aws.amazon.com");
     const isRedirectPage = 0 <= window.location.pathname.indexOf("aws-accountified-redirect.htm");
     //------------------------------------------------------------------------------------------------------------------
     // Extract the URL hint and start or schedule the redirect processing
@@ -151,7 +154,7 @@ var AwsLinkAccountifier;
         if (isRedirectPage) {
             processRedirectPage();
         }
-        if (isAwsSignin) {
+        if (isAwsSignIn) {
             const state = AwsLinkAccountifier.getRedirectState();
             if (state && state.shouldAutoLogout) {
                 AwsLinkAccountifier.setRedirectState(Object.assign(Object.assign({}, state), { shouldAutoLogout: false }));
@@ -166,9 +169,9 @@ var AwsLinkAccountifier;
             AwsLinkAccountifier.extractUrlHint();
             AwsLinkAccountifier.onDOMContentLoaded(processNotificationsAndRedirects);
         }
-        AwsLinkAccountifier.initialiseMenu({
-            copyLink: isAwsConsole && !isAwsSignin,
-            switchRole: isAwsConsole && !isAwsSignin,
+        AwsLinkAccountifier.initializeMenu({
+            copyLink: isAwsConsole && !isAwsSignIn,
+            switchRole: isAwsConsole && !isAwsSignIn,
             setAccountSwitchUrl: isAwsConsole || isRedirectPage,
             useThisPageForRedirects: isRedirectPage
         });
@@ -181,7 +184,7 @@ var AwsLinkAccountifier;
         document.removeEventListener("DOMContentLoaded", processNotificationsAndRedirects);
         const redirectState = AwsLinkAccountifier.getRedirectState();
         if (redirectState) {
-            if (isAwsSignin) {
+            if (isAwsSignIn) {
                 AwsLinkAccountifier.injectAccountSelectionHint(redirectState);
             }
             else if (isAwsConsole) {
@@ -245,9 +248,9 @@ var AwsLinkAccountifier;
 var AwsLinkAccountifier;
 (function (AwsLinkAccountifier) {
     //------------------------------------------------------------------------------------------------------------------
-    // Initialise the context menu
+    // Initialize the context menu
     //------------------------------------------------------------------------------------------------------------------
-    function initialiseMenu(options) {
+    function initializeMenu(options) {
         if (options.copyLink) {
             GM_registerMenuCommand("Copy link (redirect)", () => copyLinkToClipboard(AwsLinkAccountifier.createRedirectLink), "c");
             GM_registerMenuCommand("Copy link (direct)", () => copyLinkToClipboard(AwsLinkAccountifier.createDirectLink), "d");
@@ -262,7 +265,7 @@ var AwsLinkAccountifier;
             AwsLinkAccountifier.onDOMContentLoaded(setRedirectUrl);
         }
     }
-    AwsLinkAccountifier.initialiseMenu = initialiseMenu;
+    AwsLinkAccountifier.initializeMenu = initializeMenu;
     //------------------------------------------------------------------------------------------------------------------
     // Copy link to clipboard
     //------------------------------------------------------------------------------------------------------------------
@@ -388,7 +391,8 @@ var AwsLinkAccountifier;
     // Retrieve settings
     //------------------------------------------------------------------------------------------------------------------
     function getSettings() {
-        return migrateSettings(Object.assign(Object.assign({}, DEFAULT_SETTINGS), GM_getValue("settings", DEFAULT_SETTINGS)));
+        var _a;
+        return migrateSettings(Object.assign(Object.assign({}, DEFAULT_SETTINGS), ((_a = GM_getValue("settings", DEFAULT_SETTINGS)) !== null && _a !== void 0 ? _a : {})));
     }
     AwsLinkAccountifier.getSettings = getSettings;
     //------------------------------------------------------------------------------------------------------------------
@@ -402,16 +406,15 @@ var AwsLinkAccountifier;
     // Migrate old settings
     //------------------------------------------------------------------------------------------------------------------
     function migrateSettings(settings) {
-        const data = settings;
-        if (data && "object" === typeof data) {
-            if (data.redirectService) {
-                if (!data.redirectUrl) {
-                    data.redirectUrl = data.redirectService;
-                }
-                delete data.redirectService;
-            }
+        var _a;
+        const redirectUrl = (_a = settings.redirectUrl) !== null && _a !== void 0 ? _a : settings.redirectService;
+        delete settings.redirectService;
+        if ("string" === typeof redirectUrl) {
+            return Object.assign(Object.assign({}, settings), { redirectUrl });
         }
-        return settings;
+        else {
+            return settings;
+        }
     }
 })(AwsLinkAccountifier || (AwsLinkAccountifier = {}));
 var AwsLinkAccountifier;
@@ -480,12 +483,12 @@ var AwsLinkAccountifier;
         try {
             const json = JSON.parse(decodeURIComponent(hint));
             if (!json || "object" !== typeof json || "string" !== typeof ((_a = json === null || json === void 0 ? void 0 : json.account) === null || _a === void 0 ? void 0 : _a.id)) {
-                throw `Invalid URL hint: ${hint} (account/id is missing)`;
+                throw new Error(`account/id is missing`);
             }
             return json;
         }
         catch (exception) {
-            throw `Invalid URL hint: ${hint} (${exception})`;
+            throw new Error(`Invalid URL hint: ${hint} - (${exception})`);
         }
     }
     //------------------------------------------------------------------------------------------------------------------
@@ -553,19 +556,19 @@ var AwsLinkAccountifier;
     // Set a cookie
     //------------------------------------------------------------------------------------------------------------------
     function setCookie(name, value, domain, path, ttlMs) {
-        var expires = new Date(new Date().getTime() + ttlMs);
+        const expires = new Date(new Date().getTime() + ttlMs);
         document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires};domain=${domain};path=${path}`;
     }
     AwsLinkAccountifier.setCookie = setCookie;
     //------------------------------------------------------------------------------------------------------------------
-    // Sanitise HTML content
+    // Sanitize HTML content
     //------------------------------------------------------------------------------------------------------------------
-    function sanitise(text) {
+    function sanitize(text) {
         return text.replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;");
     }
-    AwsLinkAccountifier.sanitise = sanitise;
+    AwsLinkAccountifier.sanitize = sanitize;
     //------------------------------------------------------------------------------------------------------------------
     // Execute the given callback when the page has been loaded
     //------------------------------------------------------------------------------------------------------------------

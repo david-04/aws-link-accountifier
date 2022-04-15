@@ -1,10 +1,10 @@
 namespace AwsLinkAccountifier {
 
     //------------------------------------------------------------------------------------------------------------------
-    // Initialise the context menu
+    // Initialize the context menu
     //------------------------------------------------------------------------------------------------------------------
 
-    export function initialiseMenu(options: {
+    export function initializeMenu(options: {
         copyLink: boolean, switchRole: boolean, setAccountSwitchUrl: boolean, useThisPageForRedirects: boolean
     }) {
         if (options.copyLink) {

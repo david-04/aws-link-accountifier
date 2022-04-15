@@ -8,7 +8,7 @@ namespace AwsLinkAccountifier {
         const accountId = redirectState.requiredAccount.id;
         const accountName = getDescriptiveAccountName(redirectState);
         const banner = document.createElement("DIV");
-        banner.innerHTML = `Please sign in to account <b>${sanitise(accountName)}</b>`;
+        banner.innerHTML = `Please sign in to account <b>${sanitize(accountName)}</b>`;
 
         const style = banner.style;
         style.backgroundColor = "yellow";
@@ -30,19 +30,21 @@ namespace AwsLinkAccountifier {
     // Highlight the given account's login options
     //------------------------------------------------------------------------------------------------------------------
 
-    function highlightAccount(accountId: string, colour: string | null) {
+    function highlightAccount(accountId: string, color: string | null) {
         document.querySelectorAll("* * .saml-account-name").forEach(node => {
             const element = node as HTMLElement;
             const innerText = element.innerText;
             if (innerText.endsWith(` ${accountId}`) || innerText.endsWith(` (${accountId})`)) {
-                const style = element.parentElement!.parentElement!.style;
-                if (colour) {
-                    style.backgroundColor = colour;
-                } else {
-                    style.removeProperty("background-color");
+                const style = element.parentElement?.parentElement?.style;
+                if (style) {
+                    if (color) {
+                        style.backgroundColor = color;
+                    } else {
+                        style.removeProperty("background-color");
+                    }
+                    style.paddingTop = "1.5em";
+                    style.paddingBottom = "0.5em";
                 }
-                style.paddingTop = "1.5em";
-                style.paddingBottom = "0.5em";
             }
         });
     }
